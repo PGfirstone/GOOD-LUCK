@@ -1,0 +1,114 @@
+任务1：安装MariaDB，并配置好Python WEB服务器
+*步骤1：安装配置MariaDB-server
+安装
+配置防火墙---》端口
+创建mydb数据库，设置访问权限
+
+*步骤2：安装python mysql 客户端
+pip3 install mysqlclient
+修改配置文件----》setttings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER':'root',
+        'PASSWORD':'hd123456',
+        'HOST':'192.168.100.100',
+        'PORT':'3306',
+    }
+}
+*步骤3：验证数据库连接，完成数据迁移
+python3 manage.py migrate
+查看是否在Mysql服务器中创建了一系列表
+
+任务3：通过模型创建数据表----》模拟完善用户登录
+
+*步骤1：创建用户模型
+class UserLogin(models.Model):
+    userName=models.CharField(max_length=20,primary_key=True)
+    password=models.CharField(max_length=20)
+
+*步骤2：完成类--》数据表迁移
+python3 manage.py makemigrations
+python3 manage.py migrate
+
+*步骤3：完善用户登录流程，从数据库中读取用户记录
+def loginFunc(request):
+    if request.method=="GET":
+        return render(request,"login.html")
+    else:
+        #POST
+        userName=request.POST["username"]
+        uPWD=request.POST["pwd"]
+        #鉴权，数据库获取账户信息，进行验证
+        try:
+            u_obj=UserLogin.objects.get(userName=userName)
+            print("post.uPWD=", uPWD)
+            print("u_obj.password=", u_obj.password)
+            if u_obj.password==uPWD:
+                # return HttpResponse("超级用户：admin")
+                return redirect("/static/jQueryDom.html")
+            elif userName=="admin":
+                # return HttpResponse("超级用户：admin,密码不正确。")
+                return redirect("/index/login/")
+            else:
+                return HttpResponse("普通用户："+ userName)
+        except Exception:
+            return HttpResponse("用户未注册：" + userName)
+
+*步骤4：验证
+http://192.168.100.100:8080/index/login/
+
+任务4：新增添加用户功能
+*步骤1：规划一个URL
+path('registerUser/',views.registerUser),
+*步骤2：创建模板--》registerUser.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>registerUser</title>
+</head>
+<body>
+<h2>添加用户</h2>
+<hr/>
+<form method="post" action="#">
+    {% csrf_token %}
+    用户名：<input type="text" name="userName"><br/>
+    初次密码：<input type="password" name="pwd01"><br/>
+    确认密码：<input type="password" name="pwd02"><br/>
+    <br/>
+    <input type="submit" value="添加">
+</form>
+</body>
+</html>
+*步骤3：编写视图处理函数
+def registerUser(request):
+    #GET---->返回注册HTML页面
+    if request.method=='GET':
+        return render(request,"registerUser.html")
+    #POST-----》创建UserLogin模型对象，赋值，保存
+    userName = request.POST["userName"]
+    uPWD01 = request.POST["pwd01"]
+    uPWD02 = request.POST["pwd02"]
+    if uPWD01==uPWD02:
+        #判断用户是否已注册
+        try:
+            u_obj_test = UserLogin.objects.get(userName=userName)
+            return HttpResponse("失败，添加用户已注册!")
+        except Exception:
+            #查询未注册，添加用户
+            u_obj=UserLogin()
+            u_obj.userName=userName
+            u_obj.password=uPWD01
+            u_obj.save()
+            return HttpResponse("添加用户成功!")
+    else:
+        return HttpResponse("添加用户失败，用户输入密码不一致,请返回！")
+*步骤4：测试
+http://192.168.100.100:8080/index/registerUser/
+分种不同的情况，分别测试
+
+
+
+

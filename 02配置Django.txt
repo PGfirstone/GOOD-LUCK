@@ -1,0 +1,36 @@
+任务1：掌握settings.py的设置
+1）添加App模块
+INSTALLED_APPS = [
+	'index',
+]
+2)添加中间件
+MIDDLEWARE = [
+	'django.middleware.locale.LocaleMiddleware',
+]
+3)配置模板Templates
+    3.1新建文件夹  templates
+    3.2添加模板文件夹路径
+          'DIRS': [os.path.join(BASE_DIR,'templates'),],
+
+4）配置静态资源的目录
+   4.1新建文件夹 static
+   4.2添加静态资源文件夹路径
+   STATICFILES_DIRS=[os.path.join(BASE_DIR,'static'),]
+
+任务2：回顾操作，创建一个业务处理逻辑
+1）添加策略路由 urls.py
+from index import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("index/",views.indexFunc),
+]
+2)编写视图处理函数 index\views.py
+from django.http import HttpResponse
+.
+def indexFunc(request):
+    return HttpResponse("我是云计算2231的同学！")
+3)测试，分析其运行过程
+http://192.168.100.100:8080/index/
+
+4）思考，这样的模式有什么问题？
